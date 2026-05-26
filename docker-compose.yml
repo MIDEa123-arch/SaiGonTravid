@@ -1,0 +1,34 @@
+services:
+  db:
+    image: postgis/postgis:latest
+    container_name: travelapp_db
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: Location
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      # Mount file SQL init để tự động load dữ liệu khi container db khởi chạy lần đầu
+      - ./init_location_db.sql:/docker-entrypoint-initdb.d/init.sql
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: travelapp_backend
+    restart: always
+    volumes:
+      - ./backend:/app
+    environment:
+      # Sử dụng tên service 'db' thay cho 'localhost'
+      DATABASE_URL: "postgresql://postgres:123456@db:5432/Location"
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
