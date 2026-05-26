@@ -26,7 +26,8 @@ class FavoritePlacesService {
     }
   }
 
-  static bool isLoggedIn = false; // TODO: Cập nhật biến này khi làm chức năng đăng nhập
+  static bool isLoggedIn =
+      false; // TODO: Cập nhật biến này khi làm chức năng đăng nhập
 
   // Toggle (Thêm/Xóa) một địa điểm khỏi danh sách yêu thích
   static Future<void> toggleFavorite(BuildContext context, int placeId) async {

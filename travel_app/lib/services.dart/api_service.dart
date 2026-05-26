@@ -14,6 +14,18 @@ class ApiService {
     return _fetchPlaces(url);
   }
 
+  // Lấy địa điểm lân cận theo Category
+  Future<List<Place>> getPlacesByCategoryAndLocation(
+    int categoryId,
+    double lat,
+    double lng, {
+    int limit = 10,
+  }) async {
+    final url =
+        '${ApiConstants.placesEndpoint}?category_group_id=$categoryId&lat=$lat&lng=$lng&limit=$limit';
+    return _fetchPlaces(url);
+  }
+
   // 2. Trải nghiệm (Category 59 - Văn hóa & Lịch sử)
   Future<List<Place>> getExperiences() async {
     final url = '${ApiConstants.placesEndpoint}?category_group_id=59&limit=10';
@@ -81,7 +93,7 @@ class ApiService {
     try {
       final url = '${ApiConstants.placesEndpoint}/categories/all';
       final response = await http.get(Uri.parse(url));
-      
+
       if (response.statusCode == 200) {
         // Giải mã UTF-8 để chữ "Nhà hàng", "Cà phê" không bị lỗi font
         List data = json.decode(utf8.decode(response.bodyBytes));
@@ -111,9 +123,15 @@ class ApiService {
   }
 
   // 7. Post Review Reply
-  Future<bool> postReviewReply(int placeId, int reviewId, String content, int userId) async {
+  Future<bool> postReviewReply(
+    int placeId,
+    int reviewId,
+    String content,
+    int userId,
+  ) async {
     try {
-      final url = '${ApiConstants.placesEndpoint}/$placeId/reviews/$reviewId/reply';
+      final url =
+          '${ApiConstants.placesEndpoint}/$placeId/reviews/$reviewId/reply';
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -126,4 +144,3 @@ class ApiService {
     }
   }
 }
-

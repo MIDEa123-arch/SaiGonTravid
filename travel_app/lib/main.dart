@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter/material.dart';
 import 'package:travel_app/screens/main_screen.dart';
@@ -5,8 +6,17 @@ import 'core/app_colors.dart';
 import 'package:travel_app/services.dart/favorite_places_service.dart';
 
 void main() async {
-  // Đảm bảo các dịch vụ hệ thống đã sẵn sàng
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Đặt thanh điều hướng và trạng thái trong suốt (Edge-to-edge)
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      systemNavigationBarColor: Colors.transparent,
+      statusBarColor: Colors.transparent,
+    ),
+  );
+  SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+
   await FavoritePlacesService.loadFavorites();
   runApp(const MoodMapApp());
 }

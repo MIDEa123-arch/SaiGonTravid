@@ -10,9 +10,9 @@ class AboutPlaceScreen extends StatelessWidget {
 
   List<Map<String, dynamic>> _getValidUtilities() {
     if (place.utilities == null) return [];
-    
+
     final valid = <Map<String, dynamic>>[];
-    
+
     if (place.utilities is Map) {
       final map = place.utilities as Map;
       final tags = map['tags'];
@@ -51,9 +51,11 @@ class AboutPlaceScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final validUtilities = _getValidUtilities();
-    final hasDescription = place.description != null && place.description!.isNotEmpty;
-    final hasContact = (place.website != null && place.website!.isNotEmpty) ||
-                       (place.phone != null && place.phone!.isNotEmpty);
+    final hasDescription =
+        place.description != null && place.description!.isNotEmpty;
+    final hasContact =
+        (place.website != null && place.website!.isNotEmpty) ||
+        (place.phone != null && place.phone!.isNotEmpty);
 
     return Scaffold(
       backgroundColor: AppColors.background,
@@ -61,7 +63,11 @@ class AboutPlaceScreen extends StatelessWidget {
         backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios_new_rounded,
+            color: Colors.white,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: const Text(
@@ -107,25 +113,26 @@ class AboutPlaceScreen extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 16),
-              
+
               if (place.website != null && place.website!.isNotEmpty)
                 _buildContactRow(
                   title: 'Truy cập trang web',
                   onTap: () => _launchUrl(place.website!),
                 ),
-              
+
               if (place.phone != null && place.phone!.isNotEmpty)
                 _buildContactRow(
                   title: 'Gọi ${place.phone!}',
                   onTap: () => _launchUrl('tel:${place.phone!}'),
                 ),
-                
-              if (place.googleMapsUrl != null && place.googleMapsUrl!.isNotEmpty)
+
+              if (place.googleMapsUrl != null &&
+                  place.googleMapsUrl!.isNotEmpty)
                 _buildContactRow(
                   title: 'Xem trên Google Maps',
                   onTap: () => _launchUrl(place.googleMapsUrl!),
                 ),
-                
+
               const SizedBox(height: 40),
             ],
           ],
@@ -167,18 +174,45 @@ class AboutPlaceScreen extends StatelessWidget {
                 Widget? icon;
                 final lowerTag = tag.toLowerCase();
 
-                if (lowerTag.contains('(ko có)') || lowerTag.contains('(không có)')) {
+                if (lowerTag.contains('(ko có)') ||
+                    lowerTag.contains('(không có)')) {
                   icon = const Icon(Icons.block, color: Colors.red, size: 16);
-                  tag = tag.replaceAll(RegExp(r'\s*\(\s*ko có\s*\)|\s*\(\s*không có\s*\)', caseSensitive: false), '').trim();
+                  tag = tag
+                      .replaceAll(
+                        RegExp(
+                          r'\s*\(\s*ko có\s*\)|\s*\(\s*không có\s*\)',
+                          caseSensitive: false,
+                        ),
+                        '',
+                      )
+                      .trim();
                 } else if (lowerTag.contains('(có)')) {
-                  icon = const Icon(Icons.check_circle, color: Colors.green, size: 16);
-                  tag = tag.replaceAll(RegExp(r'\s*\(\s*có\s*\)', caseSensitive: false), '').trim();
-                } else if (lowerTag.contains('không') || lowerTag.contains('cấm')) {
+                  icon = const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  );
+                  tag = tag
+                      .replaceAll(
+                        RegExp(r'\s*\(\s*có\s*\)', caseSensitive: false),
+                        '',
+                      )
+                      .trim();
+                } else if (lowerTag.contains('không') ||
+                    lowerTag.contains('cấm')) {
                   icon = const Icon(Icons.block, color: Colors.red, size: 16);
                 } else if (lowerTag.contains('có')) {
-                  icon = const Icon(Icons.check_circle, color: Colors.green, size: 16);
+                  icon = const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  );
                 } else {
-                  icon = const Icon(Icons.check_circle, color: Colors.white70, size: 16);
+                  icon = const Icon(
+                    Icons.check_circle,
+                    color: Colors.white70,
+                    size: 16,
+                  );
                 }
 
                 return Padding(
@@ -186,10 +220,7 @@ class AboutPlaceScreen extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (icon != null) ...[
-                        icon,
-                        const SizedBox(width: 8),
-                      ],
+                      if (icon != null) ...[icon, const SizedBox(width: 8)],
                       Expanded(
                         child: Text(
                           tag,
@@ -211,7 +242,10 @@ class AboutPlaceScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildContactRow({required String title, required VoidCallback onTap}) {
+  Widget _buildContactRow({
+    required String title,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       child: Padding(
@@ -222,7 +256,7 @@ class AboutPlaceScreen extends StatelessWidget {
               title,
               style: const TextStyle(
                 color: Colors.white,
-                fontSize: 16,
+                fontSize: 15,
                 fontWeight: FontWeight.bold,
                 decoration: TextDecoration.underline,
                 decorationColor: Colors.white,

@@ -69,11 +69,7 @@ class _PlaceReviewsSectionState extends State<PlaceReviewsSection> {
 
   String _formatName(ReviewUser? user) {
     if (user == null) return 'Người dùng ẩn danh';
-    String name = user.fullName;
-    if (user.googleId != null) {
-      name += ' (Google)';
-    }
-    return name;
+    return user.fullName;
   }
 
   @override

@@ -12,7 +12,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:travel_app/services.dart/favorite_places_service.dart';
 import 'package:travel_app/widgets/about_place_section.dart';
-import 'package:travel_app/widgets/place_reviews_section.dart';
+import 'package:travel_app/widgets/place_area_section.dart';
+import 'package:travel_app/widgets/nearby_places_section.dart';
+import 'package:travel_app/widgets/shared_bottom_nav_bar.dart';
 
 class PlaceDetailScreen extends StatefulWidget {
   final int placeId;
@@ -36,6 +38,8 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
   final PageController _imagePageController = PageController();
   Timer? _timer;
   double? _distanceInKm;
+  double? _userLat;
+  double? _userLng;
 
   @override
   void initState() {
@@ -108,6 +112,8 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
 
       if (mounted) {
         setState(() {
+          _userLat = position.latitude;
+          _userLng = position.longitude;
           _distanceInKm = distanceInMeters / 1000;
         });
       }
@@ -127,6 +133,9 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
           : _place == null
           ? _buildError()
           : _buildContent(),
+      bottomNavigationBar: _place != null && !_isLoading
+          ? const SharedBottomNavigationBar(currentIndex: 0)
+          : null,
     );
   }
 
@@ -203,10 +212,14 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
               // --- GIỚI THIỆU (ABOUT) ---
               AboutPlaceSection(place: p),
 
-              // --- ĐÁNH GIÁ (REVIEWS) ---
-              PlaceReviewsSection(
+              // --- KHU VỰC (AREA) ---
+              PlaceAreaSection(place: p, distanceInKm: _distanceInKm),
+
+              // --- ĐỊA ĐIỂM LÂN CẬN ---
+              NearbyPlacesSection(
                 place: p,
-                onReplyPosted: _loadDetail,
+                userLat: _userLat,
+                userLng: _userLng,
               ),
 
               const SizedBox(height: 40),
@@ -242,7 +255,7 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
           right: 0,
           child: Container(
             height: 80,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               gradient: LinearGradient(
                 begin: Alignment.bottomCenter,
                 end: Alignment.topCenter,
@@ -377,9 +390,6 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
               ],
             ],
           ),
-          const SizedBox(height: 16),
-
-          _linkText('Viết đánh giá', () {}),
         ],
       ),
     );

@@ -11,7 +11,8 @@ class AboutPlaceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final validUtilities = _getValidUtilities();
-    final hasDescription = place.description != null && place.description!.isNotEmpty;
+    final hasDescription =
+        place.description != null && place.description!.isNotEmpty;
     final hasUtilities = validUtilities.isNotEmpty;
 
     if (!hasDescription && !hasUtilities) {
@@ -19,11 +20,6 @@ class AboutPlaceSection extends StatelessWidget {
     }
 
     return Container(
-      decoration: const BoxDecoration(
-        border: Border(
-          bottom: BorderSide(color: Colors.white24, width: 1),
-        ),
-      ),
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -37,7 +33,7 @@ class AboutPlaceSection extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 12),
-          
+
           if (hasDescription) ...[
             Text(
               place.description!,
@@ -52,38 +48,47 @@ class AboutPlaceSection extends StatelessWidget {
             const SizedBox(height: 16),
           ] else if (hasUtilities) ...[
             // Chỉ hiển thị tối đa 2 utilities trong preview khi không có giới thiệu
-            ...validUtilities.take(2).map((u) => _buildUtilityItem(u, preview: true)).toList(),
+            ...validUtilities
+                .take(2)
+                .map((u) => _buildUtilityItem(u, preview: true))
+                .toList(),
           ],
 
           const SizedBox(height: 16),
-          
+
           SizedBox(
             width: double.infinity,
-            child: OutlinedButton(
+            child: ElevatedButton(
               onPressed: () {
                 Navigator.push(
                   context,
                   PageRouteBuilder(
-                    pageBuilder: (context, animation, secondaryAnimation) => AboutPlaceScreen(place: place),
-                    transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                      const begin = Offset(1.0, 0.0);
-                      const end = Offset.zero;
-                      const curve = Curves.easeInOut;
+                    pageBuilder: (context, animation, secondaryAnimation) =>
+                        AboutPlaceScreen(place: place),
+                    transitionsBuilder:
+                        (context, animation, secondaryAnimation, child) {
+                          const begin = Offset(1.0, 0.0);
+                          const end = Offset.zero;
+                          const curve = Curves.easeInOut;
 
-                      var tween = Tween(begin: begin, end: end).chain(CurveTween(curve: curve));
+                          var tween = Tween(
+                            begin: begin,
+                            end: end,
+                          ).chain(CurveTween(curve: curve));
 
-                      return SlideTransition(
-                        position: animation.drive(tween),
-                        child: child,
-                      );
-                    },
+                          return SlideTransition(
+                            position: animation.drive(tween),
+                            child: child,
+                          );
+                        },
                   ),
                 );
               },
-              style: OutlinedButton.styleFrom(
-                side: const BorderSide(color: Colors.white30),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.darkGreen.withOpacity(0.7),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: AppColors.primaryEmerald, width: 1),
                 ),
                 padding: const EdgeInsets.symmetric(vertical: 12),
               ),
@@ -104,9 +109,9 @@ class AboutPlaceSection extends StatelessWidget {
 
   List<Map<String, dynamic>> _getValidUtilities() {
     if (place.utilities == null) return [];
-    
+
     final valid = <Map<String, dynamic>>[];
-    
+
     if (place.utilities is Map) {
       final map = place.utilities as Map;
       final tags = map['tags'];
@@ -126,10 +131,13 @@ class AboutPlaceSection extends StatelessWidget {
     return valid;
   }
 
-  Widget _buildUtilityItem(Map<String, dynamic> utility, {bool preview = false}) {
+  Widget _buildUtilityItem(
+    Map<String, dynamic> utility, {
+    bool preview = false,
+  }) {
     final title = utility['title']?.toString() ?? 'Tiện ích';
     final tags = (utility['tags'] as List).map((e) => e.toString()).toList();
-    
+
     // In preview mode, limit tags to 5
     final displayTags = preview ? tags.take(5).toList() : tags;
 
@@ -162,19 +170,46 @@ class AboutPlaceSection extends StatelessWidget {
                 Widget? icon;
                 final lowerTag = tag.toLowerCase();
 
-                if (lowerTag.contains('(ko có)') || lowerTag.contains('(không có)')) {
+                if (lowerTag.contains('(ko có)') ||
+                    lowerTag.contains('(không có)')) {
                   icon = const Icon(Icons.block, color: Colors.red, size: 16);
-                  tag = tag.replaceAll(RegExp(r'\s*\(\s*ko có\s*\)|\s*\(\s*không có\s*\)', caseSensitive: false), '').trim();
+                  tag = tag
+                      .replaceAll(
+                        RegExp(
+                          r'\s*\(\s*ko có\s*\)|\s*\(\s*không có\s*\)',
+                          caseSensitive: false,
+                        ),
+                        '',
+                      )
+                      .trim();
                 } else if (lowerTag.contains('(có)')) {
-                  icon = const Icon(Icons.check_circle, color: Colors.green, size: 16);
-                  tag = tag.replaceAll(RegExp(r'\s*\(\s*có\s*\)', caseSensitive: false), '').trim();
-                } else if (lowerTag.contains('không') || lowerTag.contains('cấm')) {
+                  icon = const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  );
+                  tag = tag
+                      .replaceAll(
+                        RegExp(r'\s*\(\s*có\s*\)', caseSensitive: false),
+                        '',
+                      )
+                      .trim();
+                } else if (lowerTag.contains('không') ||
+                    lowerTag.contains('cấm')) {
                   icon = const Icon(Icons.block, color: Colors.red, size: 16);
                 } else if (lowerTag.contains('có')) {
-                  icon = const Icon(Icons.check_circle, color: Colors.green, size: 16);
+                  icon = const Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 16,
+                  );
                 } else {
                   // Default tick icon for tags if the user meant "all get ticks"
-                  icon = const Icon(Icons.check_circle, color: Colors.white70, size: 16);
+                  icon = const Icon(
+                    Icons.check_circle,
+                    color: Colors.white70,
+                    size: 16,
+                  );
                 }
 
                 return Padding(
@@ -182,10 +217,7 @@ class AboutPlaceSection extends StatelessWidget {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      if (icon != null) ...[
-                        icon,
-                        const SizedBox(width: 6),
-                      ],
+                      if (icon != null) ...[icon, const SizedBox(width: 6)],
                       Expanded(
                         child: Text(
                           tag,
