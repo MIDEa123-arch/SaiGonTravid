@@ -17,13 +17,15 @@ class PlaceImage {
 class PlaceCategory {
   final int categoryGroupId;
   final String name;
+  final int? categoryId;
 
-  PlaceCategory({required this.categoryGroupId, required this.name});
+  PlaceCategory({required this.categoryGroupId, required this.name, this.categoryId});
 
   factory PlaceCategory.fromJson(Map<String, dynamic> json) {
     return PlaceCategory(
       categoryGroupId: json['category_group_id'],
       name: json['name'],
+      categoryId: json['category_id'],
     );
   }
 }

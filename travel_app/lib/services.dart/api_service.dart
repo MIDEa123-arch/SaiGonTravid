@@ -7,14 +7,14 @@ import 'package:travel_app/models/place_detail.dart';
 import 'package:travel_app/core/constants.dart';
 
 class ApiService {
-  // 1. Nhà hàng lân cận (Có GPS) (Category 63 - Ẩm thực)
+  // 1. Nhà hàng lân cận (Có GPS) (Lấy các category group: 114, 116, 121)
   Future<List<Place>> getBestNearbyRestaurants(double lat, double lng) async {
     final url =
-        '${ApiConstants.placesEndpoint}?category_group_id=63&lat=$lat&lng=$lng&limit=10';
+        '${ApiConstants.placesEndpoint}?category_group_ids=114,116,121&lat=$lat&lng=$lng&limit=10';
     return _fetchPlaces(url);
   }
 
-  // Lấy địa điểm lân cận theo Category
+  // Lấy địa điểm lân cận theo Category Tầng 1
   Future<List<Place>> getPlacesByCategoryAndLocation(
     int categoryId,
     double lat,
@@ -22,27 +22,40 @@ class ApiService {
     int limit = 10,
   }) async {
     final url =
-        '${ApiConstants.placesEndpoint}?category_group_id=$categoryId&lat=$lat&lng=$lng&limit=$limit';
+        '${ApiConstants.placesEndpoint}?category_id=$categoryId&lat=$lat&lng=$lng&limit=$limit';
     return _fetchPlaces(url);
   }
 
-  // 2. Trải nghiệm (Category 59 - Văn hóa & Lịch sử)
+  // Lấy địa điểm gợi ý động
+  Future<List<Place>> getSuggestedPlaces(
+    String filterQuery,
+    double lat,
+    double lng, {
+    int limit = 20, // Xa xa xíu
+  }) async {
+    final url =
+        '${ApiConstants.placesEndpoint}?$filterQuery&lat=$lat&lng=$lng&limit=$limit';
+    return _fetchPlaces(url);
+  }
+
+  // 2. Trải nghiệm (Category 5 - Du lịch)
   Future<List<Place>> getExperiences() async {
-    final url = '${ApiConstants.placesEndpoint}?category_group_id=59&limit=10';
+    final url = '${ApiConstants.placesEndpoint}?category_id=5&limit=10';
     return _fetchPlaces(url);
   }
 
-  // 3. Quán nước (Category 62 - Đồ uống & Ăn vặt)
+  // 3. Quán nước (CategoryGroup 113 - Cà phê & Trà)
   Future<List<Place>> getDrinkShop() async {
     final url =
-        '${ApiConstants.placesEndpoint}?category_group_id=62&sort_by=total_reviews&order=desc&limit=10';
+        '${ApiConstants.placesEndpoint}?category_group_id=113&sort_by=total_reviews&order=desc&limit=10';
     return _fetchPlaces(url);
   }
 
-  // Khách sạn / Nơi nghỉ ngơi cuối tuần (Category 65 - Lưu trú)
+  // Khách sạn / Nơi nghỉ ngơi cuối tuần (Category 2 - Lưu trú, type: Khách sạn)
   Future<List<Place>> getHotels() async {
+    final type = Uri.encodeComponent('Khách sạn');
     final url =
-        '${ApiConstants.placesEndpoint}?category_group_id=65&sort_by=total_reviews&order=desc&limit=10';
+        '${ApiConstants.placesEndpoint}?category_id=2&place_type=$type&sort_by=total_reviews&order=desc&limit=10';
     return _fetchPlaces(url);
   }
 
@@ -143,10 +156,12 @@ class ApiService {
       return false;
     }
   }
+
   // 8. Like review
   Future<int?> likeReview(int placeId, int reviewId, int userId) async {
     try {
-      final url = '${ApiConstants.placesEndpoint}/$placeId/reviews/$reviewId/like';
+      final url =
+          '${ApiConstants.placesEndpoint}/$placeId/reviews/$reviewId/like';
       final response = await http.post(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},

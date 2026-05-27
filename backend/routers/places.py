@@ -14,7 +14,10 @@ router = APIRouter(prefix="/places", tags=["Places"])
 def get_places(
     db: Session = Depends(get_db),
     district_id: Optional[int] = None,
+    category_id: Optional[int] = None,
     category_group_id: Optional[int] = None,
+    category_group_ids: Optional[str] = None,
+    place_type: Optional[str] = None,
     search: Optional[str] = None,
     lat: Optional[float] = None,
     lng: Optional[float] = None,
@@ -42,8 +45,19 @@ def get_places(
     # --- CÁC BỘ LỌC THEO BẢNG KHÁC ---
     if district_id:
         query = query.filter(Place.district_id == district_id)
+        
+    if category_id:
+        from models import CategoryGroup
+        query = query.join(CategoryGroup).filter(CategoryGroup.category_id == category_id)
+
     if category_group_id:
         query = query.filter(Place.category_group_id == category_group_id)
+        
+    if category_group_ids:
+        ids = [int(i.strip()) for i in category_group_ids.split(",") if i.strip().isdigit()]
+        if ids:
+            query = query.filter(Place.category_group_id.in_(ids))
+
     if search:
         query = query.filter(Place.name.ilike(f"%{search}%"))
 

@@ -139,7 +139,15 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
   Widget _buildDateOption(String text) {
     bool isSelected = selectedDate == text;
     return GestureDetector(
-      onTap: () => setState(() => selectedDate = text),
+      onTap: () {
+        setState(() {
+          if (isSelected) {
+            selectedDate = 'Tất cả đánh giá';
+          } else {
+            selectedDate = text;
+          }
+        });
+      },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
         decoration: BoxDecoration(
@@ -299,8 +307,8 @@ class _ReviewFilterBottomSheetState extends State<ReviewFilterBottomSheet> {
                   runSpacing: 12,
                   children: [
                     _buildDateOption('Tất cả đánh giá'),
-                    _buildDateOption('3 tháng trước'),
-                    _buildDateOption('6 tháng trước'),
+                    _buildDateOption('3 tháng qua'),
+                    _buildDateOption('6 tháng qua'),
                     _buildDateOption('12 tháng qua'),
                   ],
                 ),

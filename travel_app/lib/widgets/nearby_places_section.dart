@@ -41,48 +41,47 @@ class _NearbyPlacesSectionState extends State<NearbyPlacesSection> {
     if (widget.place.categoryGroup != null &&
         widget.place.lat != null &&
         widget.place.lng != null) {
-      int currentId = widget.place.categoryGroup!.categoryGroupId;
-      int suggestId;
-      String suggestName;
+      int currentId = widget.place.categoryGroup!.categoryId ?? 8;
+      String filterQuery = '';
+      String suggestName = '';
 
       switch (currentId) {
-        case 59: // Văn hóa & Lịch sử -> Ẩm thực
-          suggestId = 63;
-          suggestName = 'Nhà hàng';
+        case 1: // Ẩm thực -> Đồ uống & Ăn vặt Hoặc Giải trí
+          filterQuery = 'category_group_id=113';
+          suggestName = 'Cà phê & Trà lân cận';
           break;
-        case 64: // Thiên nhiên & Công viên -> Đồ uống & Ăn vặt
-          suggestId = 62;
-          suggestName = 'Đồ uống & Ăn vặt';
+        case 2: // Lưu trú -> Ẩm thực
+          filterQuery = 'category_group_ids=114,116,121';
+          suggestName = 'Nhà hàng lân cận';
           break;
-        case 60: // Thể thao & Thư giãn -> Đồ uống & Ăn vặt
-          suggestId = 62;
-          suggestName = 'Đồ uống & Ăn vặt';
+        case 3: // Giải trí -> Ẩm thực
+          filterQuery = 'category_group_ids=114,116,121';
+          suggestName = 'Nhà hàng lân cận';
           break;
-        case 63: // Ẩm thực -> Đồ uống & Ăn vặt
-          suggestId = 62;
-          suggestName = 'Đồ uống & Ăn vặt';
+        case 4: // Thể thao -> Đồ uống & Ăn vặt
+          filterQuery = 'category_group_id=113';
+          suggestName = 'Quán nước lân cận';
           break;
-        case 62: // Đồ uống & Ăn vặt -> Giải trí
-          suggestId = 61;
-          suggestName = 'Giải trí';
+        case 5: // Du lịch -> Ẩm thực
+          filterQuery = 'category_group_ids=114,116,121';
+          suggestName = 'Nhà hàng lân cận';
           break;
-        case 65: // Lưu trú -> Ẩm thực
-          suggestId = 63;
-          suggestName = 'Nhà hàng';
+        case 6: // Tôn giáo -> Ẩm thực
+          filterQuery = 'category_group_ids=114,116,121';
+          suggestName = 'Nhà hàng lân cận';
           break;
-        case 61: // Giải trí
-        case 66: // Mua sắm
-          suggestId = 62; // Đồ uống & Ăn vặt
-          suggestName = 'Đồ uống & Ăn vặt';
+        case 7: // Mua sắm -> Đồ uống & Ăn vặt
+          filterQuery = 'category_group_id=113';
+          suggestName = 'Cà phê & Trà lân cận';
           break;
         default:
-          suggestId = 63;
-          suggestName = 'Nhà hàng';
+          filterQuery = 'category_group_ids=114,116,121';
+          suggestName = 'Nhà hàng lân cận';
           break;
       }
 
-      final places = await _api.getPlacesByCategoryAndLocation(
-        suggestId,
+      final places = await _api.getSuggestedPlaces(
+        filterQuery,
         widget.place.lat!,
         widget.place.lng!,
       );

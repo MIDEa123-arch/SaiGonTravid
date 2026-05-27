@@ -6,7 +6,7 @@ class CategoryGroup {
 
   factory CategoryGroup.fromJson(Map<String, dynamic> json) {
     return CategoryGroup(
-      id: json['category_group_id'],
+      id: json['category_id'] ?? json['category_group_id'],
       name: json['name'],
     );
   }

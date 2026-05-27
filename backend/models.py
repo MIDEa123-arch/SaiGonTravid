@@ -3,13 +3,24 @@ from sqlalchemy.orm import relationship
 from geoalchemy2 import Geometry
 from database import Base
 
+class Category(Base):
+    __tablename__ = "categories"
+    __table_args__ = {'schema': 'TravelApp'}
+
+    category_id = Column(Integer, primary_key=True, index=True)
+    name = Column(String(255), unique=True, nullable=False)
+
+    groups = relationship("CategoryGroup", back_populates="category")
+
 class CategoryGroup(Base):
     __tablename__ = "category_groups"
     __table_args__ = {'schema': 'TravelApp'}
 
     category_group_id = Column(Integer, primary_key=True, index=True)
     name = Column(String(255), unique=True, nullable=False)
+    category_id = Column(Integer, ForeignKey('TravelApp.categories.category_id'), nullable=True)
 
+    category = relationship("Category", back_populates="groups")
     places = relationship("Place", back_populates="category_group")
 
 class District(Base):

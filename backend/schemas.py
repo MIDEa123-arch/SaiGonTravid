@@ -10,9 +10,15 @@ class Coordinate(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 # 2. Bảng phụ
+class CategoryBase(BaseModel):
+    category_id: int
+    name: str
+    model_config = ConfigDict(from_attributes=True)
+
 class CategoryGroupBase(BaseModel):
     category_group_id: int
     name: str
+    category_id: Optional[int] = None
     model_config = ConfigDict(from_attributes=True)
 
 class DistrictBase(BaseModel):

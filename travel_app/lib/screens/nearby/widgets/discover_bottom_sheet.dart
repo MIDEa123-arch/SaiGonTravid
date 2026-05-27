@@ -37,20 +37,17 @@ class _DiscoverBottomSheetState extends State<DiscoverBottomSheet> {
   int _selectedIndex = 0;
   final ApiService _apiService = ApiService();
 
-  IconData _getIconForCategory(dynamic id) {
-    if (id == null) return Icons.place_outlined;
-    int? categoryId = int.tryParse(id.toString());
-    switch (categoryId) {
-      case 1952: return Icons.local_activity_outlined;
-      case 376: return Icons.shopping_bag_outlined;
-      case 1767: return Icons.spa_outlined;
-      case 45: return Icons.nightlife_outlined;
-      case 260: return Icons.sports_soccer_outlined;
-      case 250: return Icons.local_cafe_outlined;
-      case 1: return Icons.restaurant_outlined;
-      case 209: return Icons.explore_outlined;
-      default: return Icons.category_outlined; 
-    }
+  IconData _getIconForCategory(CategoryGroup cat) {
+    String name = cat.name.toLowerCase();
+    if (name.contains('ẩm thực')) return Icons.restaurant_outlined;
+    if (name.contains('lưu trú')) return Icons.hotel_outlined;
+    if (name.contains('giải trí')) return Icons.local_activity_outlined;
+    if (name.contains('thể thao')) return Icons.sports_soccer_outlined;
+    if (name.contains('du lịch')) return Icons.explore_outlined;
+    if (name.contains('tôn giáo')) return Icons.church_outlined;
+    if (name.contains('mua sắm')) return Icons.shopping_bag_outlined;
+    if (name.contains('dịch vụ')) return Icons.design_services_outlined;
+    return Icons.category_outlined; 
   }
 
   List<Map<String, dynamic>> get _dynamicFilterOptions {
@@ -63,7 +60,7 @@ class _DiscoverBottomSheetState extends State<DiscoverBottomSheet> {
       options.add({
         'id': cat.id, 
         'label': cat.name,
-        'icon': _getIconForCategory(cat.id),
+        'icon': _getIconForCategory(cat),
       });
     }
     
