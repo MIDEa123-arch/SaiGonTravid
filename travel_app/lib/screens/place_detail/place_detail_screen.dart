@@ -14,6 +14,8 @@ import 'package:travel_app/services.dart/favorite_places_service.dart';
 import 'package:travel_app/widgets/about_place_section.dart';
 import 'package:travel_app/widgets/place_area_section.dart';
 import 'package:travel_app/widgets/nearby_places_section.dart';
+import 'package:travel_app/widgets/popular_times_section.dart';
+import 'package:travel_app/widgets/place_reviews_section.dart';
 import 'package:travel_app/widgets/shared_bottom_nav_bar.dart';
 
 class PlaceDetailScreen extends StatefulWidget {
@@ -40,6 +42,9 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
   double? _distanceInKm;
   double? _userLat;
   double? _userLng;
+  bool _isLiked = false;
+
+  final GlobalKey _reviewsKey = GlobalKey();
 
   @override
   void initState() {
@@ -222,6 +227,18 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
                 userLng: _userLng,
               ),
 
+              // --- GIỜ ĐÔNG KHÁCH ---
+              PopularTimesSection(placeId: p.placeId),
+
+              // --- ĐÁNH GIÁ & THÔNG TIN ---
+              Container(
+                key: _reviewsKey,
+                child: PlaceReviewsSection(
+                  place: p,
+                  onReplyPosted: () => _loadDetail(),
+                ),
+              ),
+
               const SizedBox(height: 40),
             ],
           ),
@@ -342,12 +359,25 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
               const SizedBox(width: 6),
               TripAdvisorRatingBar(rating: p.avgRating, size: 16),
               const SizedBox(width: 8),
-              Text(
-                '(${_formatNumber(p.totalReviews)} đánh giá)',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
+              GestureDetector(
+                onTap: () {
+                  if (_reviewsKey.currentContext != null) {
+                    Scrollable.ensureVisible(
+                      _reviewsKey.currentContext!,
+                      duration: const Duration(milliseconds: 600),
+                      curve: Curves.easeInOut,
+                    );
+                  }
+                },
+                child: Text(
+                  '${_formatNumber(p.totalReviews)} đánh giá',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
+                    decorationColor: Colors.white,
+                  ),
                 ),
               ),
               const Spacer(),

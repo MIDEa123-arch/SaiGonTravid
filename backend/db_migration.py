@@ -1,5 +1,5 @@
 from database import engine, Base
-from models import User, ReviewReply # Ensures models are loaded
+from models import User, ReviewReply, ReviewLike # Ensures models are loaded
 from sqlalchemy import text
 
 def run_migration():
@@ -12,8 +12,19 @@ def run_migration():
             WHERE email NOT LIKE '%@%';
         """))
     
-    # 2. Create review_replies table
-    print("Creating tables...")
+    # 2. Add title and likes to reviews
+    print("Migrating reviews...")
+    with engine.begin() as conn:
+        try:
+            conn.execute(text('ALTER TABLE reviews ADD COLUMN title VARCHAR(255);'))
+        except Exception as e:
+            pass
+        try:
+            conn.execute(text('ALTER TABLE reviews ADD COLUMN likes INTEGER DEFAULT 0;'))
+        except Exception as e:
+            pass
+            
+    # 3. Create tables
     Base.metadata.create_all(engine)
     print("Migration successful.")
 

@@ -62,6 +62,7 @@ class ReviewReply {
 
 class Review {
   final int reviewId;
+  final String? title;
   final String? content;
   final int? stars;
   final double? sentimentScore;
@@ -69,9 +70,11 @@ class Review {
   final ReviewUser? user;
   final List<ReviewImage> images;
   final List<ReviewReply> replies;
+  int likes;
 
   Review({
     required this.reviewId,
+    this.title,
     this.content,
     this.stars,
     this.sentimentScore,
@@ -79,11 +82,13 @@ class Review {
     this.user,
     this.images = const [],
     this.replies = const [],
+    this.likes = 0,
   });
 
   factory Review.fromJson(Map<String, dynamic> json) {
     return Review(
       reviewId: json['review_id'],
+      title: json['title'],
       content: json['content'],
       stars: json['stars'],
       sentimentScore: json['sentiment_score'] != null
@@ -99,6 +104,7 @@ class Review {
       replies: (json['replies'] as List<dynamic>? ?? [])
           .map((e) => ReviewReply.fromJson(e))
           .toList(),
+      likes: json['likes'] ?? 0,
     );
   }
 }

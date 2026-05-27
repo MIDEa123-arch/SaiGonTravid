@@ -90,3 +90,13 @@ def get_place_detail(place_id: int, db: Session = Depends(get_db)):
 @router.get("/{place_id}/images", response_model=List[PlaceImageBase])
 def get_place_images(place_id: int, db: Session = Depends(get_db)):
     return db.query(PlaceImage).filter(PlaceImage.place_id == place_id).all()
+
+# --- 6. LẤY GIỜ ĐÔNG KHÁCH ---
+@router.get("/{place_id}/popular_times")
+def get_popular_times(place_id: int, db: Session = Depends(get_db)):
+    from sqlalchemy import text
+    res = db.execute(text('SELECT day_of_week, hour, busy_percent FROM "TravelApp".place_popular_times WHERE place_id = :pid'), {"pid": place_id}).fetchall()
+    data = {str(i): [] for i in range(7)}
+    for r in res:
+        data[str(r[0])].append({"hour": r[1], "busy_percent": r[2]})
+    return data

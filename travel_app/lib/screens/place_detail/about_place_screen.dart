@@ -79,63 +79,71 @@ class AboutPlaceScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (hasDescription) ...[
-              Text(
-                place.description!,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  height: 1.5,
+      body: SafeArea(
+        bottom: true,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: 40, // Đảm bảo luôn có khoảng trống an toàn
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (hasDescription) ...[
+                Text(
+                  place.description!,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    height: 1.5,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 32),
+              ],
+
+              if (validUtilities.isNotEmpty) ...[
+                ...validUtilities.map((u) => _buildUtilityItem(u)).toList(),
+                const SizedBox(height: 20),
+              ],
+
+              if (hasContact) ...[
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 24),
+                const Text(
+                  'Liên hệ',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                if (place.website != null && place.website!.isNotEmpty)
+                  _buildContactRow(
+                    title: 'Truy cập trang web',
+                    onTap: () => _launchUrl(place.website!),
+                  ),
+
+                if (place.phone != null && place.phone!.isNotEmpty)
+                  _buildContactRow(
+                    title: 'Gọi ${place.phone!}',
+                    onTap: () => _launchUrl('tel:${place.phone!}'),
+                  ),
+
+                if (place.googleMapsUrl != null &&
+                    place.googleMapsUrl!.isNotEmpty)
+                  _buildContactRow(
+                    title: 'Xem trên Google Maps',
+                    onTap: () => _launchUrl(place.googleMapsUrl!),
+                  ),
+
+                const SizedBox(height: 40),
+              ],
             ],
-
-            if (validUtilities.isNotEmpty) ...[
-              ...validUtilities.map((u) => _buildUtilityItem(u)).toList(),
-              const SizedBox(height: 20),
-            ],
-
-            if (hasContact) ...[
-              const Divider(color: Colors.white24, height: 1),
-              const SizedBox(height: 24),
-              const Text(
-                'Liên hệ',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              if (place.website != null && place.website!.isNotEmpty)
-                _buildContactRow(
-                  title: 'Truy cập trang web',
-                  onTap: () => _launchUrl(place.website!),
-                ),
-
-              if (place.phone != null && place.phone!.isNotEmpty)
-                _buildContactRow(
-                  title: 'Gọi ${place.phone!}',
-                  onTap: () => _launchUrl('tel:${place.phone!}'),
-                ),
-
-              if (place.googleMapsUrl != null &&
-                  place.googleMapsUrl!.isNotEmpty)
-                _buildContactRow(
-                  title: 'Xem trên Google Maps',
-                  onTap: () => _launchUrl(place.googleMapsUrl!),
-                ),
-
-              const SizedBox(height: 40),
-            ],
-          ],
+          ),
         ),
       ),
     );

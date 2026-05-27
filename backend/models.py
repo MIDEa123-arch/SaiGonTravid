@@ -50,6 +50,7 @@ class Place(Base):
     avg_rating = Column(DECIMAL(3, 2), default=0)
     total_reviews = Column(Integer, default=0)
     review_popularity_level = Column(String(50))
+    popular_times = Column(JSON)
     phone = Column(String(50))
     website = Column(Text)
     google_maps_url = Column(Text)
@@ -94,9 +95,11 @@ class Review(Base):
     review_id = Column(Integer, primary_key=True, index=True)
     place_id = Column(Integer, ForeignKey("TravelApp.places.place_id", ondelete="CASCADE"))
     user_id = Column(Integer, ForeignKey("TravelApp.users.user_id", ondelete="CASCADE"))
+    title = Column(String(255))
     content = Column(Text)
     stars = Column(Integer)
     sentiment_score = Column(DECIMAL(3, 2))
+    likes = Column(Integer, default=0)
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
 
     place = relationship("Place", back_populates="reviews")
@@ -126,3 +129,12 @@ class ReviewReply(Base):
 
     review = relationship("Review", back_populates="replies")
     user = relationship("User")
+
+class ReviewLike(Base):
+    __tablename__ = "review_likes"
+    __table_args__ = {'schema': 'TravelApp'}
+
+    like_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("TravelApp.users.user_id", ondelete="CASCADE"))
+    review_id = Column(Integer, ForeignKey("TravelApp.reviews.review_id", ondelete="CASCADE"))
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))

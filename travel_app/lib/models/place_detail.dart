@@ -63,6 +63,7 @@ class PlaceDetail {
   final List<Review> reviews;
   final String? googleMapsUrl;
   final String? reviewPopularityLevel;
+  final Map<String, dynamic>? popularTimes;
 
   PlaceDetail({
     required this.placeId,
@@ -85,6 +86,7 @@ class PlaceDetail {
     this.reviews = const [],
     this.googleMapsUrl,
     this.reviewPopularityLevel,
+    this.popularTimes,
   });
 
   factory PlaceDetail.fromJson(Map<String, dynamic> json) {
@@ -126,6 +128,9 @@ class PlaceDetail {
           .toList(),
       googleMapsUrl: json['google_maps_url'],
       reviewPopularityLevel: json['review_popularity_level'],
+      popularTimes: json['popular_times'] is Map
+          ? Map<String, dynamic>.from(json['popular_times'])
+          : null,
     );
   }
 }

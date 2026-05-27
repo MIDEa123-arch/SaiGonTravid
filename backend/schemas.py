@@ -55,11 +55,16 @@ class ReviewReplyCreate(BaseModel):
     content: str
     user_id: int
 
+class ReviewLikeCreate(BaseModel):
+    user_id: int
+
 class ReviewBase(BaseModel):
     review_id: int
+    title: Optional[str] = None
     content: Optional[str] = None
     stars: Optional[int] = None
     sentiment_score: Optional[float] = None
+    likes: Optional[int] = 0
     created_at: Optional[datetime] = None
     user: Optional[UserMinimal] = None
     images: List[ReviewImageBase] = []
@@ -113,6 +118,7 @@ class PlaceDetail(PlaceBase):
     description: Optional[str] = None
     utilities: Optional[Any] = None
     opening_hours: Optional[Any] = None
+    popular_times: Optional[Any] = None
     phone: Optional[str] = None
     website: Optional[str] = None
     google_maps_url: Optional[str] = None

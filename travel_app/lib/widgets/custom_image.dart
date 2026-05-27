@@ -47,8 +47,6 @@ class CustomImage extends StatelessWidget {
             width: width,
             height: height,
             color: Colors.grey[800],
-            child: const Icon(Icons.image_not_supported,
-                color: Colors.grey, size: 20),
           ),
     );
   }

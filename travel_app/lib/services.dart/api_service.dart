@@ -143,4 +143,38 @@ class ApiService {
       return false;
     }
   }
+  // 8. Like review
+  Future<int?> likeReview(int placeId, int reviewId, int userId) async {
+    try {
+      final url = '${ApiConstants.placesEndpoint}/$placeId/reviews/$reviewId/like';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode({'user_id': userId}),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = json.decode(response.body);
+        return data['likes'];
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi like review: $e");
+      return null;
+    }
+  }
+
+  // 9. Lấy giờ đông khách
+  Future<Map<String, dynamic>?> getPopularTimes(int placeId) async {
+    try {
+      final url = '${ApiConstants.placesEndpoint}/$placeId/popular_times';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        return json.decode(utf8.decode(response.bodyBytes));
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi lấy popular times: $e");
+      return null;
+    }
+  }
 }
