@@ -222,36 +222,6 @@ TravelApp
 
 
 
-Các bảng chính cần có:
-
-
-
-```txt
-
-users
-
-places
-
-reviews
-
-review\_images
-
-categories
-
-place\_images
-
-districts
-
-saved\_places
-
-review\_likes
-
-review\_replies
-
-```
-
-
-
 Lưu ý phân biệt:
 
 
@@ -263,7 +233,6 @@ Database: Travel\_app hoặc travel\_app tùy máy
 Schema: TravelApp
 
 ```
-
 
 
 Nếu đổi tên database mà không copy dữ liệu, app sẽ không load được data.
@@ -478,7 +447,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 Flutter:
 
-```powershell
+```powershellg
 
 cd "E:\\Lap\_trinh\_di\_dong\\CProject\\coding\\SaiGonTravid\\travel\_app"
 
