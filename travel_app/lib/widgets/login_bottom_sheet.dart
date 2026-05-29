@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:travel_app/core/app_colors.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:travel_app/screens/auth/login_screen.dart';
+import 'package:travel_app/screens/auth/register_screen.dart';
 
 class LoginBottomSheet extends StatelessWidget {
   const LoginBottomSheet({super.key});
@@ -65,7 +67,14 @@ class LoginBottomSheet extends StatelessWidget {
               width: double.infinity,
               height: 54,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.of(context).pop(); // Đóng bottom sheet
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (_) => const RegisterScreen(),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
@@ -141,7 +150,12 @@ class LoginBottomSheet extends StatelessWidget {
             const SizedBox(height: 32),
             // Đã có tài khoản?
             GestureDetector(
-              onTap: () {},
+              onTap: () {
+                Navigator.of(context).pop(); // Đóng bottom sheet
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
               child: Text(
                 'Quý vị đã có tài khoản? Đăng nhập',
                 style: GoogleFonts.beVietnamPro(

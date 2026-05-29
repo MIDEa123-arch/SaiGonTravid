@@ -4,6 +4,7 @@ import 'package:travel_app/models/category.dart';
 import 'package:travel_app/models/district.dart';
 import 'package:travel_app/models/place.dart';
 import 'package:travel_app/models/place_detail.dart';
+import 'package:travel_app/models/user_review.dart';
 import 'package:travel_app/core/constants.dart';
 
 class ApiService {
@@ -192,4 +193,144 @@ class ApiService {
       return null;
     }
   }
+
+  // 10. Tạo đánh giá địa điểm (Post Review)
+  Future<String?> createReview({
+    required int placeId,
+    required int userId,
+    required int rating,
+    String? title,
+    required String comment,
+    String? imageUrl,
+  }) async {
+    try {
+      final url = '${ApiConstants.placesEndpoint}/$placeId/reviews';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({
+          'user_id': userId,
+          'rating': rating,
+          'title': title,
+          'comment': comment,
+          'image_url': imageUrl,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        return null; // Thành công
+      } else {
+        final body = json.decode(utf8.decode(response.bodyBytes));
+        return body['detail'] ?? 'Không thể gửi đánh giá';
+      }
+    } catch (e) {
+      print("Lỗi createReview: $e");
+      return 'Không thể kết nối đến server';
+    }
+  }
+
+  // 11. Lấy danh sách đánh giá của một User
+  Future<List<UserReview>> getUserReviews(int userId) async {
+    try {
+      final url = '${ApiConstants.baseUrl}/users/$userId/reviews';
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        List data = json.decode(utf8.decode(response.bodyBytes));
+        return data.map((item) => UserReview.fromJson(item)).toList();
+      }
+      return [];
+    } catch (e) {
+      print("Lỗi getUserReviews: $e");
+      return [];
+    }
+  }
+
+  // 12. Xóa đánh giá địa điểm
+  Future<bool> deleteReview(int placeId, int reviewId, int userId) async {
+    try {
+      final url = '${ApiConstants.placesEndpoint}/$placeId/reviews/$reviewId?user_id=$userId';
+      final response = await http.delete(Uri.parse(url));
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Lỗi deleteReview: $e");
+      return false;
+    }
+  }
+
+  // 13. Cập nhật thông tin cá nhân (Họ và tên & Email)
+  Future<String?> updateUserProfile(int userId, String fullName, String email) async {
+    try {
+      final url = '${ApiConstants.baseUrl}/users/$userId';
+      final response = await http.put(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({
+          'full_name': fullName,
+          'email': email,
+        }),
+      );
+      if (response.statusCode == 200) {
+        return null; // Thành công
+      } else {
+        final body = json.decode(utf8.decode(response.bodyBytes));
+        return body['detail'] ?? 'Cập nhật thất bại';
+      }
+    } catch (e) {
+      print("Lỗi updateUserProfile: $e");
+      return 'Không thể kết nối đến server';
+    }
+  }
+
+  // 14. Upload ảnh đại diện (avatar)
+  Future<String?> uploadAvatar(int userId, String filePath) async {
+    try {
+      final url = '${ApiConstants.baseUrl}/users/$userId/avatar';
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      
+      request.files.add(
+        await http.MultipartFile.fromPath('file', filePath),
+      );
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final body = json.decode(utf8.decode(response.bodyBytes));
+        return body['avatar_url'];
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi uploadAvatar: $e");
+      return null;
+    }
+  }
+
+  // 15. Upload ảnh Review
+  Future<String?> uploadReviewImage(String filePath) async {
+    try {
+      final url = '${ApiConstants.placesEndpoint}/reviews/upload-image';
+      final request = http.MultipartRequest('POST', Uri.parse(url));
+      
+      request.files.add(
+        await http.MultipartFile.fromPath('file', filePath),
+      );
+      
+      final streamedResponse = await request.send();
+      final response = await http.Response.fromStream(streamedResponse);
+      
+      if (response.statusCode == 200) {
+        final body = json.decode(utf8.decode(response.bodyBytes));
+        return body['image_url'];
+      }
+      return null;
+    } catch (e) {
+      print("Lỗi uploadReviewImage: $e");
+      return null;
+    }
+  }
+
+  // 16. Lấy đường dẫn đầy đủ của avatar từ relative path
+  String getAvatarFullUrl(String relativeUrl) {
+    return 'http://${ApiConstants.ip}:8000$relativeUrl';
+  }
 }
+

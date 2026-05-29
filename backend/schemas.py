@@ -130,3 +130,67 @@ class PlaceDetail(PlaceBase):
     google_maps_url: Optional[str] = None
     review_popularity_level: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
+
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Auth Schemas
+# ─────────────────────────────────────────────────────────────────────────────
+
+class UserRegisterRequest(BaseModel):
+    """Body cho POST /api/auth/register"""
+    full_name: str
+    email: str
+    password: str
+
+class UserLoginRequest(BaseModel):
+    """Body cho POST /api/auth/login"""
+    email: str
+    password: str
+
+class ForgotPasswordRequest(BaseModel):
+    """Body cho POST /api/auth/forgot-password"""
+    email: str
+
+class UserGoogleLoginRequest(BaseModel):
+    """Body cho POST /api/auth/google"""
+    google_id: str
+    email: str
+    full_name: str
+    avatar_url: Optional[str] = None
+    id_token: Optional[str] = None
+
+
+class AuthResponse(BaseModel):
+    """Response trả về sau register/login thành công"""
+    user_id: int
+    full_name: str
+    email: str
+    avatar_url: Optional[str] = None
+    message: str
+    model_config = ConfigDict(from_attributes=True)
+
+class MessageResponse(BaseModel):
+    """Response chỉ có message (dùng cho forgot-password)"""
+    message: str
+
+
+class ReviewCreateRequest(BaseModel):
+    user_id: int
+    rating: int
+    title: Optional[str] = None
+    comment: Optional[str] = None
+    image_url: Optional[str] = None
+
+
+class UserReviewResponse(BaseModel):
+    review_id: int
+    place_id: int
+    place_name: str
+    place_address: Optional[str] = None
+    place_image_url: Optional[str] = None
+    rating: int
+    title: Optional[str] = None
+    comment: Optional[str] = None
+    created_at: Optional[datetime] = None
+    model_config = ConfigDict(from_attributes=True)
+

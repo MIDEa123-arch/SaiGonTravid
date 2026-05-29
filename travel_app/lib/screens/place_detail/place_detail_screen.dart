@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:travel_app/core/app_colors.dart';
 import 'package:travel_app/models/place_detail.dart';
 import 'package:travel_app/services.dart/api_service.dart';
+import 'package:travel_app/services.dart/recent_places_service.dart';
 import 'package:travel_app/widgets/custom_image.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:travel_app/widgets/tripadvisor_rating_bar.dart';
@@ -87,6 +88,7 @@ class _PlaceDetailScreenState extends State<PlaceDetailScreen> {
       });
       if (detail != null) {
         _calculateDistance(detail);
+        RecentPlacesService.addRecentPlace(detail.toPlace());
       }
     }
   }

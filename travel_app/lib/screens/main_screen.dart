@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:travel_app/screens/nearby/nearby_screen.dart';
 import 'package:travel_app/screens/trips/trips_screen.dart';
+import 'package:travel_app/screens/reviews/reviews_screen.dart';
+import 'package:travel_app/screens/account/account_screen.dart';
 import '../core/app_colors.dart';
 import 'home/home_screen.dart';
 import 'package:travel_app/widgets/shared_bottom_nav_bar.dart';
+
 
 class MainScreen extends StatefulWidget {
   final int initialIndex;
@@ -27,8 +30,8 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(), // Tab: Khám phá
     const NearbyScreen(),
     const TripsScreen(),
-    const Center(child: Text('Màn hình Đánh giá')),
-    const Center(child: Text('Màn hình Tài khoản')),
+    const ReviewsScreen(), // Tab: Đánh giá
+    const AccountScreen(), // Tab: Tài khoản
   ];
 
   @override

@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:travel_app/screens/main_screen.dart';
 import 'core/app_colors.dart';
 import 'package:travel_app/services.dart/favorite_places_service.dart';
+import 'package:travel_app/services.dart/auth_service.dart';
+import 'package:travel_app/screens/splash/splash_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,6 +20,7 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
 
   await FavoritePlacesService.loadFavorites();
+  await AuthService.loadSession(); // Khôi phục session đăng nhập
   runApp(const MoodMapApp());
 }
 
@@ -47,7 +50,7 @@ class MoodMapApp extends StatelessWidget {
       ),
 
       // Màn hình đầu tiên hiện lên khi mở App
-      home: const MainScreen(),
+      home: const SplashScreen(), // Bắt đầu từ SplashScreen
     );
   }
 }

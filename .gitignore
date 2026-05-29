@@ -7,6 +7,10 @@
 .buildlog/
 .history
 
+backend/.venv/
+.venv/
+__pycache__/
+*.pyc
 
 
 # Flutter repo-specific
@@ -120,3 +124,20 @@ app.*.symbols
 
 # Ignore image data
 backend/static/images/images_data/
+
+# Environment configurations
+.env
+backend/.env
+# Backend local/generated files
+backend/backups/
+backend/*.dump
+backend/*.bak
+backend/*.backup
+backend/travel_app.db
+
+# Runtime uploaded files
+backend/static/avatars/
+backend/static/reviews/
+
+# Local IDE settings
+.vscode/settings.json

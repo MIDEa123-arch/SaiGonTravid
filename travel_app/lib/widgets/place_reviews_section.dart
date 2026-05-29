@@ -8,6 +8,8 @@ import 'package:travel_app/widgets/login_bottom_sheet.dart';
 import 'package:travel_app/services.dart/favorite_places_service.dart';
 import 'package:travel_app/widgets/rating_summary.dart';
 import 'package:travel_app/screens/place_detail/all_reviews_screen.dart';
+import 'package:travel_app/screens/reviews/write_review_screen.dart';
+import 'package:travel_app/services.dart/auth_service.dart';
 
 class PlaceReviewsSection extends StatefulWidget {
   final PlaceDetail place;
@@ -69,6 +71,9 @@ class _PlaceReviewsSectionState extends State<PlaceReviewsSection> {
     final reviews = widget.place.reviews;
     if (reviews.isEmpty) return const SizedBox.shrink();
 
+    final hasReviewed = FavoritePlacesService.isLoggedIn &&
+        reviews.any((r) => r.user?.userId == AuthService.currentUser?.userId);
+
     int r5 = 0, r4 = 0, r3 = 0, r2 = 0, r1 = 0;
     for (var r in reviews) {
       if (r.stars == 5)
@@ -122,28 +127,38 @@ class _PlaceReviewsSectionState extends State<PlaceReviewsSection> {
             width: double.infinity,
             height: 48,
             child: ElevatedButton.icon(
-              onPressed: () {
+              onPressed: hasReviewed ? null : () {
                 if (!FavoritePlacesService.isLoggedIn) {
                   LoginBottomSheet.show(context);
                 } else {
-                  // TODO: Xử lý sự kiện Viết đánh giá
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WriteReviewScreen(place: widget.place),
+                    ),
+                  ).then((value) {
+                    if (value == true) {
+                      widget.onReplyPosted();
+                    }
+                  });
                 }
               },
-              icon: const Icon(
+              icon: Icon(
                 Icons.edit_outlined,
-                color: Colors.black87,
+                color: hasReviewed ? Colors.white30 : Colors.black87,
                 size: 20,
               ),
-              label: const Text(
-                'Viết đánh giá',
+              label: Text(
+                hasReviewed ? 'Bạn đã đánh giá địa điểm này' : 'Viết đánh giá',
                 style: TextStyle(
-                  color: Colors.black87,
+                  color: hasReviewed ? Colors.white30 : Colors.black87,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFFE0E0E0),
+                backgroundColor: hasReviewed ? Colors.white10 : const Color(0xFFE0E0E0),
+                disabledBackgroundColor: Colors.white10,
                 elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(24),

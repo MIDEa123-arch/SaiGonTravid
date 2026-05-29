@@ -1,4 +1,5 @@
 import 'package:travel_app/models/review.dart';
+import 'package:travel_app/models/place.dart';
 
 class PlaceImage {
   final int imageId;
@@ -90,6 +91,22 @@ class PlaceDetail {
     this.reviewPopularityLevel,
     this.popularTimes,
   });
+
+  Place toPlace() {
+    return Place(
+      id: placeId,
+      name: name,
+      address: address,
+      placeType: placeType,
+      avgRating: avgRating,
+      imageUrl: images.isNotEmpty ? images.first.imageUrl : null,
+      totalReviews: totalReviews,
+      priceRange: priceRange,
+      lat: lat,
+      lng: lng,
+      categoryId: categoryGroup?.categoryGroupId,
+    );
+  }
 
   factory PlaceDetail.fromJson(Map<String, dynamic> json) {
     final coords = json['lat_lng'];

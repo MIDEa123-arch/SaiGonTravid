@@ -7,6 +7,8 @@ import 'package:travel_app/widgets/rating_summary.dart';
 import 'package:travel_app/widgets/review_filter_bottom_sheet.dart';
 import 'package:travel_app/widgets/login_bottom_sheet.dart';
 import 'package:travel_app/services.dart/favorite_places_service.dart';
+import 'package:travel_app/screens/reviews/write_review_screen.dart';
+import 'package:travel_app/services.dart/auth_service.dart';
 
 class AllReviewsScreen extends StatefulWidget {
   final PlaceDetail place;
@@ -146,17 +148,16 @@ class _AllReviewsScreenState extends State<AllReviewsScreen> {
       }).toList();
     }
 
+    final hasReviewed = FavoritePlacesService.isLoggedIn &&
+        widget.place.reviews.any((r) => r.user?.userId == AuthService.currentUser?.userId);
+
     return Scaffold(
-      backgroundColor: Colors.black,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new,
-            color: Colors.white,
-            size: 20,
-          ),
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
@@ -171,16 +172,26 @@ class _AllReviewsScreenState extends State<AllReviewsScreen> {
         ),
         centerTitle: true,
         actions: [
-          IconButton(
-            icon: const Icon(Icons.edit, color: Colors.white, size: 20),
-            onPressed: () {
-              if (!FavoritePlacesService.isLoggedIn) {
-                LoginBottomSheet.show(context);
-              } else {
-                // TODO: Chức năng viết đánh giá
-              }
-            },
-          ),
+          if (!hasReviewed)
+            IconButton(
+              icon: const Icon(Icons.edit, color: Colors.white, size: 20),
+              onPressed: () {
+                if (!FavoritePlacesService.isLoggedIn) {
+                  LoginBottomSheet.show(context);
+                } else {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => WriteReviewScreen(place: widget.place),
+                    ),
+                  ).then((value) {
+                    if (value == true) {
+                      widget.onReplyPosted();
+                    }
+                  });
+                }
+              },
+            ),
         ],
       ),
       body: SafeArea(

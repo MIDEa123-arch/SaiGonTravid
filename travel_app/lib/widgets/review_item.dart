@@ -4,6 +4,10 @@ import 'package:travel_app/models/review.dart';
 import 'package:travel_app/services.dart/api_service.dart';
 import 'package:travel_app/widgets/login_bottom_sheet.dart';
 import 'package:travel_app/services.dart/favorite_places_service.dart';
+import 'package:travel_app/services.dart/auth_service.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:travel_app/screens/reviews/review_image_viewer_screen.dart';
+
 
 class ReviewItem extends StatefulWidget {
   final Review review;
@@ -31,6 +35,130 @@ class _ReviewItemState extends State<ReviewItem> {
   void initState() {
     super.initState();
     _likes = widget.review.likes;
+  }
+
+  void _showReviewOptions(Review r) {
+    final userId = AuthService.currentUser?.userId;
+    if (userId == null) return;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: AppColors.surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                margin: const EdgeInsets.only(top: 10, bottom: 6),
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.white24,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete_outline_rounded, color: Colors.redAccent),
+                title: Text(
+                  'Xóa đánh giá của bạn',
+                  style: GoogleFonts.beVietnamPro(
+                    color: Colors.redAccent,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                onTap: () {
+                  Navigator.pop(context);
+                  _confirmDeleteReview(r);
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _confirmDeleteReview(Review r) {
+    final userId = AuthService.currentUser?.userId;
+    if (userId == null) return;
+
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          backgroundColor: AppColors.surface,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Text(
+            'Xóa đánh giá?',
+            style: GoogleFonts.beVietnamPro(
+              color: Colors.white,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Bạn có chắc chắn muốn xóa đánh giá này? Thao tác này không thể hoàn tác.',
+            style: GoogleFonts.beVietnamPro(
+              color: Colors.white70,
+              fontSize: 14,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(
+                'Hủy',
+                style: GoogleFonts.beVietnamPro(color: Colors.white54),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                Navigator.pop(context);
+                final success = await _api.deleteReview(widget.placeId, r.reviewId, userId);
+                if (mounted) {
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Đã xóa đánh giá thành công.',
+                          style: GoogleFonts.beVietnamPro(),
+                        ),
+                        backgroundColor: AppColors.primaryEmerald,
+                      ),
+                    );
+                    widget.onReplyPosted();
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          'Không thể xóa đánh giá. Vui lòng thử lại.',
+                          style: GoogleFonts.beVietnamPro(),
+                        ),
+                        backgroundColor: Colors.redAccent,
+                      ),
+                    );
+                  }
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: Text(
+                'Xóa',
+                style: GoogleFonts.beVietnamPro(fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showReplyDialog() {
@@ -144,7 +272,9 @@ class _ReviewItemState extends State<ReviewItem> {
             ClipOval(
               child: review.user?.avatarUrl != null
                   ? Image.network(
-                      review.user!.avatarUrl!,
+                      review.user!.avatarUrl!.startsWith('/static')
+                          ? _api.getAvatarFullUrl(review.user!.avatarUrl!)
+                          : review.user!.avatarUrl!,
                       width: 48,
                       height: 48,
                       fit: BoxFit.cover,
@@ -173,6 +303,18 @@ class _ReviewItemState extends State<ReviewItem> {
                 ),
               ),
             ),
+            if (AuthService.isLoggedIn && AuthService.currentUser?.userId == review.user?.userId)
+              GestureDetector(
+                onTap: () => _showReviewOptions(review),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Icon(
+                    Icons.more_vert_rounded,
+                    color: Colors.white60,
+                    size: 22,
+                  ),
+                ),
+              ),
           ],
         ),
         const SizedBox(height: 12),
@@ -280,17 +422,34 @@ class _ReviewItemState extends State<ReviewItem> {
               itemCount: review.images.length,
               separatorBuilder: (context, index) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                return ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: Image.network(
-                    review.images[index].imageUrl,
-                    width: 100,
-                    height: 100,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
+                final imageUrl = review.images[index].imageUrl;
+                final fullImageUrl = imageUrl.startsWith('/static')
+                    ? _api.getAvatarFullUrl(imageUrl)
+                    : imageUrl;
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => ReviewImageViewerScreen(
+                          images: review.images.map((img) => img.imageUrl).toList(),
+                          initialIndex: index,
+                        ),
+                      ),
+                    );
+                  },
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: Image.network(
+                      fullImageUrl,
                       width: 100,
                       height: 100,
-                      color: Colors.grey.shade800,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 100,
+                        height: 100,
+                        color: Colors.grey.shade800,
+                      ),
                     ),
                   ),
                 );
