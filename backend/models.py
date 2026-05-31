@@ -149,3 +149,45 @@ class ReviewLike(Base):
     user_id = Column(Integer, ForeignKey("TravelApp.users.user_id", ondelete="CASCADE"))
     review_id = Column(Integer, ForeignKey("TravelApp.reviews.review_id", ondelete="CASCADE"))
     created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+
+class Trip(Base):
+    __tablename__ = "trips"
+    __table_args__ = {'schema': 'TravelApp'}
+
+    trip_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("TravelApp.users.user_id", ondelete="CASCADE"))
+    name = Column(String(255), nullable=False)
+    start_date = Column(TIMESTAMP, nullable=False)
+    num_days = Column(Integer, nullable=False)
+    note = Column(Text)
+    cover_image_url = Column(Text)
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+
+    user = relationship("User")
+    itinerary = relationship("TripItinerary", back_populates="trip", cascade="all, delete-orphan")
+
+class TripItinerary(Base):
+    __tablename__ = "trip_itinerary"
+    __table_args__ = {'schema': 'TravelApp'}
+
+    itinerary_id = Column(Integer, primary_key=True, index=True)
+    trip_id = Column(Integer, ForeignKey("TravelApp.trips.trip_id", ondelete="CASCADE"))
+    day_index = Column(Integer, nullable=False)
+    place_id = Column(Integer, ForeignKey("TravelApp.places.place_id", ondelete="CASCADE"))
+    order_index = Column(Integer, nullable=False)
+    start_time = Column(String(10), nullable=True) # e.g. "08:30"
+
+    trip = relationship("Trip", back_populates="itinerary")
+    place = relationship("Place")
+
+class SavedPlace(Base):
+    __tablename__ = "saved_places"
+    __table_args__ = {'schema': 'TravelApp'}
+
+    saved_id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("TravelApp.users.user_id", ondelete="CASCADE"))
+    place_id = Column(Integer, ForeignKey("TravelApp.places.place_id", ondelete="CASCADE"))
+    created_at = Column(TIMESTAMP, server_default=text('CURRENT_TIMESTAMP'))
+
+    user = relationship("User")
+    place = relationship("Place")

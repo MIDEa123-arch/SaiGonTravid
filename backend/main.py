@@ -4,7 +4,7 @@ load_dotenv()
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from routers import categories, places, reviews, users, auth
+from routers import categories, places, reviews, users, auth, trips
 
 
 app = FastAPI(title="Travel App API")
@@ -24,6 +24,7 @@ app.include_router(places.router, prefix="/api")
 app.include_router(reviews.router, prefix="/api")
 app.include_router(users.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(trips.router)
 
 @app.get("/api")
 def read_root():

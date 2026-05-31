@@ -193,4 +193,56 @@ class UserReviewResponse(BaseModel):
     comment: Optional[str] = None
     created_at: Optional[datetime] = None
     model_config = ConfigDict(from_attributes=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Saved Place Schemas
+# ─────────────────────────────────────────────────────────────────────────────
+
+class SavedPlaceCreate(BaseModel):
+    place_id: int
+
+class SavedPlaceResponse(BaseModel):
+    saved_id: int
+    user_id: int
+    place: PlaceBase
+    created_at: datetime
+    model_config = ConfigDict(from_attributes=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+# Trip Schemas
+# ─────────────────────────────────────────────────────────────────────────────
+
+class TripPlaceCreate(BaseModel):
+    day_index: int
+    place_id: int
+    order_index: int
+    start_time: Optional[str] = None
+
+class TripCreateRequest(BaseModel):
+    name: str
+    start_date: datetime
+    num_days: int
+    note: Optional[str] = None
+    places: List[TripPlaceCreate] = []
+
+class TripItineraryResponse(BaseModel):
+    itinerary_id: int
+    day_index: int
+    order_index: int
+    start_time: Optional[str] = None
+    place: PlaceBase
+    model_config = ConfigDict(from_attributes=True)
+
+class TripResponse(BaseModel):
+    trip_id: int
+    user_id: int
+    name: str
+    start_date: datetime
+    num_days: int
+    note: Optional[str] = None
+    cover_image_url: Optional[str] = None
+    created_at: datetime
+    is_completed: bool = False
+    itinerary: List[TripItineraryResponse] = []
+    model_config = ConfigDict(from_attributes=True)
 

@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from database import get_db
-from models import User, Review, Place
-from schemas import UserDetail, UserReviewResponse
+from models import User, Review, Place, SavedPlace
+from schemas import UserDetail, UserReviewResponse, SavedPlaceResponse, SavedPlaceCreate
+from sqlalchemy.exc import IntegrityError
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -43,6 +44,57 @@ def get_user_reviews(user_id: int, db: Session = Depends(get_db)):
             created_at=r.created_at
         ))
     return res
+
+@router.get("/{user_id}/saved_places", response_model=List[SavedPlaceResponse])
+def get_user_saved_places(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    saved = db.query(SavedPlace).options(
+        joinedload(SavedPlace.place)
+    ).filter(SavedPlace.user_id == user_id).order_by(SavedPlace.created_at.desc()).all()
+    
+    return saved
+
+@router.post("/{user_id}/saved_places", response_model=SavedPlaceResponse)
+def add_saved_place(user_id: int, place_data: SavedPlaceCreate, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+        
+    place = db.query(Place).filter(Place.place_id == place_data.place_id).first()
+    if not place:
+        raise HTTPException(status_code=404, detail="Place not found")
+        
+    existing = db.query(SavedPlace).filter(SavedPlace.user_id == user_id, SavedPlace.place_id == place_data.place_id).first()
+    if existing:
+        return existing
+        
+    new_saved = SavedPlace(user_id=user_id, place_id=place_data.place_id)
+    db.add(new_saved)
+    try:
+        db.commit()
+        db.refresh(new_saved)
+    except IntegrityError:
+        db.rollback()
+        raise HTTPException(status_code=400, detail="Could not save place")
+        
+    # load place relationship
+    db.refresh(new_saved)
+    return new_saved
+
+@router.delete("/{user_id}/saved_places/{place_id}")
+def remove_saved_place(user_id: int, place_id: int, db: Session = Depends(get_db)):
+    saved = db.query(SavedPlace).filter(SavedPlace.user_id == user_id, SavedPlace.place_id == place_id).first()
+    if not saved:
+        raise HTTPException(status_code=404, detail="Saved place not found")
+        
+    db.delete(saved)
+    db.commit()
+    return {"message": "Removed successfully"}
+
+
 
 
 import re

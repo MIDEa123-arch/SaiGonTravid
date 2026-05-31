@@ -3,17 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:travel_app/widgets/login_bottom_sheet.dart';
 import 'package:travel_app/services.dart/auth_service.dart';
+import 'package:travel_app/services.dart/api_service.dart';
+import 'package:travel_app/widgets/top_toast.dart';
 
 class FavoritePlacesService {
   static final ValueNotifier<List<int>> notifier = ValueNotifier([]);
   
-  static String? get _key {
-    final user = AuthService.currentUser;
-    if (user != null) {
-      return 'favorite_places_user_${user.userId}';
-    }
-    return null;
-  }
+  static final ApiService _apiService = ApiService();
 
   static bool _listenerAdded = false;
 
@@ -31,23 +27,15 @@ class FavoritePlacesService {
       return;
     }
 
-    final keyName = _key;
-    if (keyName == null) {
-      notifier.value = [];
-      return;
-    }
-
-    final prefs = await SharedPreferences.getInstance();
-    final String? placesJson = prefs.getString(keyName);
-
-    if (placesJson == null) {
+    final user = AuthService.currentUser;
+    if (user == null) {
       notifier.value = [];
       return;
     }
 
     try {
-      final List<dynamic> decodedList = json.decode(placesJson);
-      notifier.value = decodedList.cast<int>();
+      final savedPlaces = await _apiService.getSavedPlaces(user.userId);
+      notifier.value = savedPlaces.map((p) => p.id).toList();
     } catch (e) {
       notifier.value = [];
     }
@@ -63,23 +51,38 @@ class FavoritePlacesService {
       return;
     }
 
-    final keyName = _key;
-    if (keyName == null) return;
+    final user = AuthService.currentUser;
+    if (user == null) return;
 
-    final prefs = await SharedPreferences.getInstance();
     final List<int> currentFavorites = List<int>.from(notifier.value);
+    final isCurrentlyFavorite = currentFavorites.contains(placeId);
 
-    if (currentFavorites.contains(placeId)) {
+    // Optimistic UI update
+    if (isCurrentlyFavorite) {
       currentFavorites.remove(placeId);
+      notifier.value = currentFavorites;
+      TopToast.show(context, "Đã bỏ lưu địa điểm", isError: false);
+      
+      final success = await _apiService.removeSavedPlace(user.userId, placeId);
+      if (!success) {
+        // revert on failure
+        currentFavorites.add(placeId);
+        notifier.value = currentFavorites;
+        TopToast.show(context, "Lỗi bỏ lưu địa điểm", isError: true);
+      }
     } else {
       currentFavorites.add(placeId);
+      notifier.value = currentFavorites;
+      TopToast.show(context, "Đã lưu địa điểm", isError: false);
+      
+      final success = await _apiService.addSavedPlace(user.userId, placeId);
+      if (!success) {
+        // revert on failure
+        currentFavorites.remove(placeId);
+        notifier.value = currentFavorites;
+        TopToast.show(context, "Lỗi lưu địa điểm", isError: true);
+      }
     }
-
-    final String encodedList = json.encode(currentFavorites);
-    await prefs.setString(keyName, encodedList);
-
-    // Báo hiệu UI cập nhật
-    notifier.value = currentFavorites;
   }
 
   // Kiểm tra xem một địa điểm có phải là yêu thích không

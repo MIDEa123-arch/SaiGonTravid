@@ -11,6 +11,7 @@ class Step3ConfirmationWidget extends StatefulWidget {
   final DateTime startDate;
   final int numDays;
   final Map<int, List<Place>> dayPlaces;
+  final Map<String, String>? placeTimes;
   final TextEditingController nameController;
   final TextEditingController noteController;
   final VoidCallback onRefreshLocation;
@@ -23,6 +24,7 @@ class Step3ConfirmationWidget extends StatefulWidget {
     required this.startDate,
     required this.numDays,
     required this.dayPlaces,
+    this.placeTimes,
     required this.nameController,
     required this.noteController,
     required this.onRefreshLocation,
@@ -379,9 +381,10 @@ class _Step3ConfirmationWidgetState extends State<Step3ConfirmationWidget> {
                         itemBuilder: (context, index) {
                           final place = places[index];
                           final isLast = index == places.length - 1;
+                          final timeStr = widget.placeTimes?["${dayIndex}_${place.id}"] ?? "";
                           return Column(
                             children: [
-                              _buildPlaceItem(place, index),
+                              _buildPlaceItem(place, index, timeStr),
                               // Dấu --- nối giữa các địa điểm
                               if (!isLast)
                                 Padding(
@@ -434,7 +437,7 @@ class _Step3ConfirmationWidgetState extends State<Step3ConfirmationWidget> {
     );
   }
 
-  Widget _buildPlaceItem(Place place, int index) {
+  Widget _buildPlaceItem(Place place, int index, String timeStr) {
     return Container(
       margin: const EdgeInsets.only(bottom: 4),
       padding: const EdgeInsets.all(10),
@@ -500,7 +503,24 @@ class _Step3ConfirmationWidgetState extends State<Step3ConfirmationWidget> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 5),
+                if (timeStr.isNotEmpty) ...[
+                  const SizedBox(height: 3),
+                  Row(
+                    children: [
+                      const Icon(Icons.access_time, color: Color(0xFF00D186), size: 12),
+                      const SizedBox(width: 4),
+                      Text(
+                        timeStr,
+                        style: const TextStyle(
+                          color: Color(0xFF00D186),
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 3),
                 Row(
                   children: [
                     const Icon(

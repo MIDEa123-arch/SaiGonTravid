@@ -5,6 +5,7 @@ import 'package:travel_app/models/district.dart';
 import 'package:travel_app/models/place.dart';
 import 'package:travel_app/models/place_detail.dart';
 import 'package:travel_app/models/user_review.dart';
+import 'package:travel_app/models/trip.dart';
 import 'package:travel_app/core/constants.dart';
 
 class ApiService {
@@ -331,6 +332,94 @@ class ApiService {
   // 16. Lấy đường dẫn đầy đủ của avatar từ relative path
   String getAvatarFullUrl(String relativeUrl) {
     return 'http://${ApiConstants.ip}:8000$relativeUrl';
+  }
+
+  // 17. CREATE TRIP
+  Future<Trip?> createTrip(Map<String, dynamic> tripData, int userId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/trips/?user_id=$userId'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode(tripData),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final body = json.decode(utf8.decode(response.bodyBytes));
+        return Trip.fromJson(body);
+      }
+      print("Lỗi createTrip: ${response.statusCode} - ${response.body}");
+      return null;
+    } catch (e) {
+      print("Lỗi createTrip exception: $e");
+      return null;
+    }
+  }
+
+  // 18. GET USER TRIPS
+  Future<List<Trip>> getUserTrips(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/trips/user/$userId'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+        return body.map((e) => Trip.fromJson(e)).toList();
+      }
+      print("Lỗi getUserTrips: ${response.statusCode}");
+      return [];
+    } catch (e) {
+      print("Lỗi getUserTrips exception: $e");
+      return [];
+    }
+  }
+
+  // 19. GET SAVED PLACES
+  Future<List<Place>> getSavedPlaces(int userId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiConstants.baseUrl}/users/$userId/saved_places'),
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> body = json.decode(utf8.decode(response.bodyBytes));
+        // The API returns a list of SavedPlaceResponse which has a 'place' object
+        return body.map((e) => Place.fromJson(e['place'])).toList();
+      }
+      print("Lỗi getSavedPlaces: ${response.statusCode}");
+      return [];
+    } catch (e) {
+      print("Lỗi getSavedPlaces exception: $e");
+      return [];
+    }
+  }
+
+  // 20. ADD SAVED PLACE
+  Future<bool> addSavedPlace(int userId, int placeId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('${ApiConstants.baseUrl}/users/$userId/saved_places'),
+        headers: {'Content-Type': 'application/json; charset=UTF-8'},
+        body: json.encode({"place_id": placeId}),
+      );
+      return response.statusCode == 200 || response.statusCode == 201;
+    } catch (e) {
+      print("Lỗi addSavedPlace: $e");
+      return false;
+    }
+  }
+
+  // 21. REMOVE SAVED PLACE
+  Future<bool> removeSavedPlace(int userId, int placeId) async {
+    try {
+      final response = await http.delete(
+        Uri.parse('${ApiConstants.baseUrl}/users/$userId/saved_places/$placeId'),
+      );
+      return response.statusCode == 200;
+    } catch (e) {
+      print("Lỗi removeSavedPlace: $e");
+      return false;
+    }
   }
 }
 

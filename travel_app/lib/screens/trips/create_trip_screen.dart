@@ -3,9 +3,12 @@ import 'package:travel_app/models/place.dart';
 import 'package:travel_app/screens/trips/widgets/create_trip_step1.dart';
 import 'package:travel_app/screens/trips/widgets/create_trip_step2.dart';
 import 'package:travel_app/screens/trips/widgets/create_trip_step3.dart';
+import 'package:travel_app/screens/trips/widgets/create_trip_step3_time.dart';
+import 'package:travel_app/widgets/top_toast.dart';
 import 'package:travel_app/services.dart/api_service.dart';
 import 'package:travel_app/services.dart/location_service.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:travel_app/services.dart/auth_service.dart';
 
 class CreateTripScreen extends StatefulWidget {
   const CreateTripScreen({super.key});
@@ -21,9 +24,10 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
   int _numDays = 1;
   DateTime _startDate = DateTime.now();
   Map<int, List<Place>> _dayPlaces = {};
+  Map<String, String> _placeTimes = {}; // key: "${dayIndex}_${place.id}"
 
   final ApiService _apiService = ApiService();
-  List<Place> _popularPlaces = [];
+  List<Place> _savedPlaces = [];
   bool _isLoading = true;
 
   // Step 3 State
@@ -41,12 +45,18 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
 
   Future<void> _loadApiData() async {
     try {
-      final results = await _apiService.getExperiences();
-      if (!mounted) return;
-      setState(() {
-        _popularPlaces = results;
-        _isLoading = false;
-      });
+      final user = AuthService.currentUserNotifier.value;
+      if (user != null) {
+        final results = await _apiService.getSavedPlaces(user.userId);
+        if (!mounted) return;
+        setState(() {
+          _savedPlaces = results;
+          _isLoading = false;
+        });
+      } else {
+        if (!mounted) return;
+        setState(() => _isLoading = false);
+      }
     } catch (e) {
       if (!mounted) return;
       setState(() => _isLoading = false);
@@ -78,7 +88,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
         backgroundColor: bgColor,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, size: 20, color: Colors.white),
+          icon: const Icon(Icons.arrow_back_ios_new, size: 20, color: Colors.white),
           onPressed: () {
             if (_currentStep > 0) {
               setState(() => _currentStep--);
@@ -109,7 +119,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   ClipRRect(
                     borderRadius: BorderRadius.circular(10),
                     child: LinearProgressIndicator(
-                      value: (_currentStep + 1) / 3, // Chia cho 3 thay vì 4
+                      value: (_currentStep + 1) / 4, 
                       backgroundColor: Colors.grey[800],
                       valueColor: const AlwaysStoppedAnimation<Color>(
                         primaryColor,
@@ -119,7 +129,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    "Bước ${_currentStep + 1}/3", // Đổi thành /3
+                    "Bước ${_currentStep + 1}/4", 
                     style: TextStyle(color: Colors.grey[500], fontSize: 12),
                   ),
                   const SizedBox(height: 15),
@@ -147,21 +157,89 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () {
-                    if (_currentStep == 1 && _lat == null) {
-                      _refreshLocation();
+                    if (_currentStep == 1) {
+                      if (_lat == null) {
+                        _refreshLocation();
+                      }
+                      bool hasPlaces = _dayPlaces.values.any((list) => list.isNotEmpty);
+                      if (!hasPlaces) {
+                        TopToast.show(context, "Vui lòng thêm ít nhất một địa điểm vào lịch trình!", isError: true);
+                        return;
+                      }
                     }
-                    if (_currentStep < 2) {
-                      // Chỉ cho phép tăng tới index 2
+
+                    if (_currentStep == 2) {
+                      bool valid = true;
+                      for (var entry in _dayPlaces.entries) {
+                        final dayIndex = entry.key;
+                        final placesList = entry.value;
+                        Set<String> selectedTimes = {};
+
+                        for (var place in placesList) {
+                          final timeKey = "${dayIndex}_${place.id}";
+                          final timeValue = _placeTimes[timeKey];
+                          if (timeValue == null) {
+                            valid = false;
+                            TopToast.show(context, "Vui lòng chọn thời gian cho tất cả địa điểm", isError: true);
+                            return;
+                          }
+                          if (selectedTimes.contains(timeValue)) {
+                            valid = false;
+                            TopToast.show(context, "Lỗi trùng lặp thời gian ở Ngày ${dayIndex + 1}", isError: true);
+                            return;
+                          }
+                          selectedTimes.add(timeValue);
+                        }
+                      }
+                      if (!valid) return;
+                    }
+
+                    if (_currentStep < 3) {
                       setState(() => _currentStep++);
                     } else {
-                      // Bước 4 cũ đã bị bỏ, đây là logic khi nhấn "Hoàn tất" ở bước 3
-                      print("Lưu dữ liệu: ${_nameController.text}");
-                      print("Số ngày: $_numDays");
-                      print("Địa điểm: $_dayPlaces");
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text("Đang lưu chuyến đi...")),
-                      );
-                      // Logic Navigator.pop hoặc chuyển về Home ở đây
+                      if (_nameController.text.trim().isEmpty) {
+                        TopToast.show(context, "Vui lòng nhập tên chuyến đi", isError: true);
+                        return;
+                      }
+
+                      TopToast.show(context, "Đang lưu chuyến đi...", isError: false);
+
+                      List<Map<String, dynamic>> places = [];
+                      _dayPlaces.forEach((day, placeList) {
+                        for (int i = 0; i < placeList.length; i++) {
+                          final timeKey = "${day}_${placeList[i].id}";
+                          places.add({
+                            "day_index": day,
+                            "place_id": placeList[i].id,
+                            "order_index": i,
+                            "start_time": _placeTimes[timeKey],
+                          });
+                        }
+                      });
+
+                      final tripData = {
+                        "name": _nameController.text.trim(),
+                        "start_date": _startDate.toIso8601String(),
+                        "num_days": _numDays,
+                        "note": _noteController.text.trim(),
+                        "places": places,
+                      };
+
+                      final user = AuthService.currentUserNotifier.value;
+                      if (user != null) {
+                        _apiService.createTrip(tripData, user.userId).then((
+                          trip,
+                        ) {
+                          if (trip != null) {
+                            TopToast.show(context, "Tạo chuyến đi thành công!", isError: false);
+                            Navigator.pop(context); // Trở về màn hình trước
+                          } else {
+                            TopToast.show(context, "Lỗi tạo chuyến đi", isError: true);
+                          }
+                        });
+                      } else {
+                        TopToast.show(context, "Vui lòng đăng nhập", isError: true);
+                      }
                     }
                   },
                   style: ElevatedButton.styleFrom(
@@ -174,9 +252,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        _currentStep == 2
+                        _currentStep == 3
                             ? "Hoàn tất"
-                            : "Tiếp theo", // Sửa thành index 2
+                            : "Tiếp theo", 
                         style: const TextStyle(
                           color: Colors.black,
                           fontSize: 14,
@@ -185,9 +263,9 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
                       ),
                       const SizedBox(width: 8),
                       Icon(
-                        _currentStep == 2
+                        _currentStep == 3
                             ? Icons.check
-                            : Icons.arrow_forward, // Sửa thành index 2
+                            : Icons.arrow_forward, 
                         color: Colors.black,
                         size: 20,
                       ),
@@ -216,11 +294,23 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           numDays: _numDays,
           startDate: _startDate,
           dayPlaces: _dayPlaces,
-          popularPlaces: _popularPlaces,
+          popularPlaces: _savedPlaces,
           onPlacesUpdated: (dayIndex, places) =>
               setState(() => _dayPlaces[dayIndex] = places),
         );
       case 2:
+        return Step3TimeSelectionWidget(
+          numDays: _numDays,
+          startDate: _startDate,
+          dayPlaces: _dayPlaces,
+          placeTimes: _placeTimes,
+          onTimeSelected: (dayIndex, placeId, time) {
+            setState(() {
+              _placeTimes["${dayIndex}_${placeId}"] = time;
+            });
+          },
+        );
+      case 3:
         return Step3ConfirmationWidget(
           currentAddress: _currentAddress,
           lat: _lat,
@@ -228,6 +318,7 @@ class _CreateTripScreenState extends State<CreateTripScreen> {
           startDate: _startDate,
           numDays: _numDays,
           dayPlaces: _dayPlaces,
+          placeTimes: _placeTimes,
           nameController: _nameController,
           noteController: _noteController,
           onRefreshLocation: _refreshLocation,
@@ -251,10 +342,8 @@ class StepIndicatorWidget extends StatelessWidget {
     required this.primaryColor,
   });
 
-  @override
   Widget build(BuildContext context) {
-    // Đã xóa "Generate"
-    final steps = ["Chọn ngày", "Lịch trình", "Hoàn tất"];
+    final steps = ["Chọn ngày", "Lịch trình", "Chọn giờ", "Hoàn tất"];
 
     List<Widget> indicatorWidgets = [];
 
